@@ -1089,6 +1089,7 @@ function createMapHtml(data, detailedRouteGeometry = {}) {
     .route-stat { border: 1px solid #dbe4e8; border-radius: 8px; padding: 8px; background: #fff; }
     .route-stat strong { display: block; font-size: 16px; }
     .route-stat span { font-size: 11px; color: #61727c; }
+    .route-note { grid-column: 1 / -1; border: 1px solid #d9e8ef; border-radius: 8px; padding: 8px 10px; background: #f3f9fc; color: #41606e; font-size: 12px; line-height: 1.35; }
     .day-list { margin-top: 10px; display: grid; gap: 8px; }
     .day-card { border: 1px solid #dbe4e8; border-radius: 8px; padding: 10px; background: #fff; cursor: pointer; }
     .day-card.active { border-color: #245164; box-shadow: 0 0 0 2px rgba(36,81,100,.12); }
@@ -1477,6 +1478,22 @@ function createMapHtml(data, detailedRouteGeometry = {}) {
       });
       return segments;
     }
+    function buildApproximateLeg(fromPoint, toPoint, reason = "") {
+      const crowMiles = Math.max(1, haversineMiles(fromPoint, toPoint));
+      const distanceMiles = crowMiles * 1.18;
+      const durationHours = Math.max(0.25, distanceMiles / 55);
+      return {
+        distanceMiles,
+        durationHours,
+        path: [
+          [fromPoint.lat, fromPoint.lon],
+          [toPoint.lat, toPoint.lon]
+        ],
+        steps: [],
+        approximate: true,
+        reason
+      };
+    }
     function splitLegByDriveTime(leg, maxDriveHoursPerDay) {
       const targetHours = Math.max(0.25, maxDriveHoursPerDay * 0.9);
       if (leg.durationHours <= targetHours) {
@@ -1550,20 +1567,26 @@ function createMapHtml(data, detailedRouteGeometry = {}) {
       const cacheKey = lat.toFixed(3) + "," + lon.toFixed(3);
       if (reverseGeocodeCache.has(cacheKey)) return reverseGeocodeCache.get(cacheKey);
       const url = "https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=10&lat=" + encodeURIComponent(lat) + "&lon=" + encodeURIComponent(lon);
-      const response = await fetch(url, { headers: { Accept: "application/json" } });
-      if (!response.ok) {
+      try {
+        const response = await fetch(url, { headers: { Accept: "application/json" } });
+        if (!response.ok) {
+          const fallback = { name: "Stop near " + lat.toFixed(2) + ", " + lon.toFixed(2), lat, lon };
+          reverseGeocodeCache.set(cacheKey, fallback);
+          return fallback;
+        }
+        const data = await response.json();
+        const address = data.address || {};
+        const town = address.city || address.town || address.village || address.hamlet || address.county || "Route stop";
+        const state = address.state || "";
+        const label = state ? town + ", " + state : town;
+        const resolved = { name: label, lat, lon };
+        reverseGeocodeCache.set(cacheKey, resolved);
+        return resolved;
+      } catch {
         const fallback = { name: "Stop near " + lat.toFixed(2) + ", " + lon.toFixed(2), lat, lon };
         reverseGeocodeCache.set(cacheKey, fallback);
         return fallback;
       }
-      const data = await response.json();
-      const address = data.address || {};
-      const town = address.city || address.town || address.village || address.hamlet || address.county || "Route stop";
-      const state = address.state || "";
-      const label = state ? town + ", " + state : town;
-      const resolved = { name: label, lat, lon };
-      reverseGeocodeCache.set(cacheKey, resolved);
-      return resolved;
     }
     function buildOptimizedOrder(startPoint, attractionsToRoute) {
       const remaining = attractionsToRoute.slice();
@@ -1609,35 +1632,53 @@ function createMapHtml(data, detailedRouteGeometry = {}) {
       async function fetchLegRoute(fromPoint, toPoint) {
         const coords = fromPoint.lon + "," + fromPoint.lat + ";" + toPoint.lon + "," + toPoint.lat;
         const url = "https://router.project-osrm.org/route/v1/driving/" + coords + "?overview=full&geometries=geojson&steps=true";
-        const response = await fetch(url);
-        if (!response.ok) throw new Error("Routing request failed");
-        const payload = await response.json();
-        const route = payload.routes && payload.routes[0];
-        if (!route || !route.geometry || !Array.isArray(route.geometry.coordinates)) throw new Error("No route geometry returned");
-        const routeLeg = route.legs && route.legs[0];
-        const steps = routeLeg && Array.isArray(routeLeg.steps) ? routeLeg.steps.map((step) => ({
-          distanceMiles: step.distance / 1609.344,
-          durationHours: step.duration / 3600,
-          path: step.geometry && Array.isArray(step.geometry.coordinates) && step.geometry.coordinates.length
-            ? step.geometry.coordinates.map(([lon, lat]) => [lat, lon])
-            : []
-        })).filter((step) => Array.isArray(step.path) && step.path.length >= 2) : [];
+        try {
+          const response = await fetch(url);
+          if (!response.ok) return buildApproximateLeg(fromPoint, toPoint, "routing service unavailable");
+          const payload = await response.json();
+          const route = payload.routes && payload.routes[0];
+          if (!route || !route.geometry || !Array.isArray(route.geometry.coordinates)) {
+            return buildApproximateLeg(fromPoint, toPoint, "routing service returned incomplete geometry");
+          }
+          const routeLeg = route.legs && route.legs[0];
+          const steps = routeLeg && Array.isArray(routeLeg.steps) ? routeLeg.steps.map((step) => ({
+            distanceMiles: step.distance / 1609.344,
+            durationHours: step.duration / 3600,
+            path: step.geometry && Array.isArray(step.geometry.coordinates) && step.geometry.coordinates.length
+              ? step.geometry.coordinates.map(([lon, lat]) => [lat, lon])
+              : []
+          })).filter((step) => Array.isArray(step.path) && step.path.length >= 2) : [];
+          return {
+            distanceMiles: route.distance / 1609.344,
+            durationHours: route.duration / 3600,
+            path: route.geometry.coordinates.map(([lon, lat]) => [lat, lon]),
+            steps,
+            approximate: false,
+            reason: ""
+          };
+        } catch {
+          return buildApproximateLeg(fromPoint, toPoint, "routing request failed in the browser");
+        }
+      }
+      async function fetchRouteLegs(startPoint, orderedStops, endPoint) {
+        const points = [startPoint, ...orderedStops, endPoint];
+        const legs = [];
+        let usedApproximation = false;
+        const approximationReasons = new Set();
+        for (let i = 0; i < points.length - 1; i += 1) {
+          const leg = await fetchLegRoute(points[i], points[i + 1]);
+          if (leg.approximate) {
+            usedApproximation = true;
+            if (leg.reason) approximationReasons.add(leg.reason);
+          }
+          legs.push(leg);
+        }
         return {
-          distanceMiles: route.distance / 1609.344,
-          durationHours: route.duration / 3600,
-          path: route.geometry.coordinates.map(([lon, lat]) => [lat, lon]),
-          steps
+          legs,
+          usedApproximation,
+          approximationReasons: [...approximationReasons]
         };
       }
-    async function fetchRouteLegs(startPoint, orderedStops, endPoint) {
-      const points = [startPoint, ...orderedStops, endPoint];
-      const legs = [];
-      for (let i = 0; i < points.length - 1; i += 1) {
-        const leg = await fetchLegRoute(points[i], points[i + 1]);
-      legs.push(leg);
-      }
-      return legs;
-    }
       async function expandLongDriveLegs(startPoint, orderedStops, endPoint, legs, maxDriveHoursPerDay) {
         const nodes = [
           { kind: "start", name: startPoint.name, lat: startPoint.lat, lon: startPoint.lon },
@@ -1782,22 +1823,24 @@ function createMapHtml(data, detailedRouteGeometry = {}) {
       });
       return results.map((day, index) => ({ ...day, dayNumber: index + 1 }));
     }
-    function summarizeRoute(dayPlan, restDayCount, selectedStopCount) {
-      const totals = dayPlan.reduce((acc, day) => {
-        acc.driveHours += day.driveHours;
-        acc.driveMiles += day.driveMiles;
-        if (day.type === "drive") acc.driveDays += 1;
-        return acc;
+      function summarizeRoute(dayPlan, restDayCount, selectedStopCount, options = {}) {
+        const totals = dayPlan.reduce((acc, day) => {
+          acc.driveHours += day.driveHours;
+          acc.driveMiles += day.driveMiles;
+          if (day.type === "drive") acc.driveDays += 1;
+          return acc;
       }, { driveHours: 0, driveMiles: 0, driveDays: 0 });
       return {
         selectedStopCount,
-        totalDriveHours: totals.driveHours,
-        totalDriveMiles: totals.driveMiles,
-        driveDays: totals.driveDays,
-        restDays: restDayCount,
-        totalTripDays: dayPlan.length
-      };
-    }
+          totalDriveHours: totals.driveHours,
+          totalDriveMiles: totals.driveMiles,
+          driveDays: totals.driveDays,
+          restDays: restDayCount,
+          totalTripDays: dayPlan.length,
+          approximateRouting: Boolean(options.approximateRouting),
+          approximationReasons: Array.isArray(options.approximationReasons) ? options.approximationReasons : []
+        };
+      }
     function round1(value) {
       return Math.round(value * 10) / 10;
     }
@@ -1806,21 +1849,25 @@ function createMapHtml(data, detailedRouteGeometry = {}) {
       const known = new Set(activeAttractions.map((item) => attractionKey(item)));
       return dayPlan.every((day) => !Array.isArray(day.attractions) || day.attractions.every((stop) => !stop.key || known.has(stop.key)));
     }
-    function renderRouteSummary() {
-      if (!currentRouteSummary) {
-        routeSummaryEl.innerHTML = "";
-        dayListEl.innerHTML = "";
-        return;
-      }
-      routeSummaryEl.innerHTML = [
-        ["Stops", currentRouteSummary.selectedStopCount],
-        ["Miles", round1(currentRouteSummary.totalDriveMiles)],
-        ["Drive hrs", round1(currentRouteSummary.totalDriveHours)],
-        ["Trip days", currentRouteSummary.totalTripDays],
-        ["Drive days", currentRouteSummary.driveDays],
-        ["Rest days", currentRouteSummary.restDays]
-      ].map(([label, value]) => '<div class="route-stat"><strong>' + esc(value) + '</strong><span>' + esc(label) + '</span></div>').join("");
-      dayListEl.innerHTML = currentDayPlan.map((day) => {
+      function renderRouteSummary() {
+        if (!currentRouteSummary) {
+          routeSummaryEl.innerHTML = "";
+          dayListEl.innerHTML = "";
+          return;
+        }
+        const statsHtml = [
+          ["Stops", currentRouteSummary.selectedStopCount],
+          ["Miles", round1(currentRouteSummary.totalDriveMiles)],
+          ["Drive hrs", round1(currentRouteSummary.totalDriveHours)],
+          ["Trip days", currentRouteSummary.totalTripDays],
+          ["Drive days", currentRouteSummary.driveDays],
+          ["Rest days", currentRouteSummary.restDays]
+        ].map(([label, value]) => '<div class="route-stat"><strong>' + esc(value) + '</strong><span>' + esc(label) + '</span></div>').join("");
+        const noteHtml = currentRouteSummary.approximateRouting
+          ? '<div class="route-note">Using approximate route geometry for some legs because the live routing service was unavailable.</div>'
+          : "";
+        routeSummaryEl.innerHTML = statsHtml + noteHtml;
+        dayListEl.innerHTML = currentDayPlan.map((day) => {
         const stopLines = day.attractions.map((stop, index) => '<div class="day-stop">' + esc(index + 1 + ". " + stop.name + " - " + stop.city + ", " + stop.state) + '</div>').join("");
         const title = day.type === "rest" ? "Day " + day.dayNumber + " - Rest Day" : "Day " + day.dayNumber;
         const meta = day.type === "rest"
@@ -1935,17 +1982,26 @@ function createMapHtml(data, detailedRouteGeometry = {}) {
         document.getElementById("computeRoute").textContent = "Computing...";
         const [startPoint, endPoint] = await Promise.all([geocodeLocation(startText), geocodeLocation(endText)]);
         const orderedStops = buildOptimizedOrder(startPoint, selectedAttractions);
-        const legs = await fetchRouteLegs(startPoint, orderedStops, endPoint);
-        const expandedRoute = await expandLongDriveLegs(startPoint, orderedStops, endPoint, legs, maxDriveHoursPerDay);
-        const driveDays = buildDrivingDays(startPoint, endPoint, expandedRoute.nodes, expandedRoute.legs, maxDriveHoursPerDay);
-        const fullPlan = insertRestDays(driveDays, restDayCount);
-        currentDayPlan = fullPlan;
-        currentRouteSummary = summarizeRoute(fullPlan, restDayCount, selectedAttractions.length);
-        renderComputedRoute(fullPlan, true);
-        saveStoredState();
-      } catch (error) {
-        setRouteError(error && error.message === "Location not found" ? "Could not resolve the start or end location." : "Route computation failed. Please try again.");
-      } finally {
+          const routeResult = await fetchRouteLegs(startPoint, orderedStops, endPoint);
+          const expandedRoute = await expandLongDriveLegs(startPoint, orderedStops, endPoint, routeResult.legs, maxDriveHoursPerDay);
+          const driveDays = buildDrivingDays(startPoint, endPoint, expandedRoute.nodes, expandedRoute.legs, maxDriveHoursPerDay);
+          const fullPlan = insertRestDays(driveDays, restDayCount);
+          currentDayPlan = fullPlan;
+          currentRouteSummary = summarizeRoute(fullPlan, restDayCount, selectedAttractions.length, {
+            approximateRouting: routeResult.usedApproximation,
+            approximationReasons: routeResult.approximationReasons
+          });
+          renderComputedRoute(fullPlan, true);
+          saveStoredState();
+        } catch (error) {
+          if (error && error.message === "Location not found") {
+            setRouteError("Could not resolve the start or end location.");
+          } else if (error && error.message) {
+            setRouteError("Route computation failed: " + error.message);
+          } else {
+            setRouteError("Route computation failed. Please try again.");
+          }
+        } finally {
         document.getElementById("computeRoute").disabled = false;
         document.getElementById("computeRoute").textContent = "Compute Route";
       }
