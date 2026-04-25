@@ -999,6 +999,25 @@ async function createWorkbook(data) {
 function createMapHtml(data, detailedRouteGeometry = {}) {
   const typeOptions = [...new Set(data.map((d) => d.type))].sort();
   const stateOptions = states.map((s) => s[0]);
+  const stateAbbreviations = {
+    "New York": "NY",
+    Pennsylvania: "PA",
+    Ohio: "OH",
+    Michigan: "MI",
+    Indiana: "IN",
+    Illinois: "IL",
+    Wisconsin: "WI",
+    Minnesota: "MN",
+    Iowa: "IA",
+    "North Dakota": "ND",
+    "South Dakota": "SD",
+    Nebraska: "NE",
+    Montana: "MT",
+    Wyoming: "WY",
+    Idaho: "ID",
+    Washington: "WA",
+    Oregon: "OR",
+  };
   const mapData = data.map((item) => ({
     state: item.state,
     city: item.city,
@@ -1032,6 +1051,72 @@ function createMapHtml(data, detailedRouteGeometry = {}) {
       routeSource: Array.isArray(detailed) ? "Road-following routing geometry" : "Simplified waypoint geometry",
       selected: road[8],
     };
+  });
+  const normalizeLocationKey = (value) => String(value || "")
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/[.]/g, " ")
+    .replace(/\s*,\s*/g, ", ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const localLocationLookup = {};
+  const cityGroups = new Map();
+  mapData.forEach((item) => {
+    const cityKey = `${item.city}|${item.state}`;
+    if (!cityGroups.has(cityKey)) {
+      cityGroups.set(cityKey, {
+        city: item.city,
+        state: item.state,
+        latSum: 0,
+        lonSum: 0,
+        count: 0,
+      });
+    }
+    const group = cityGroups.get(cityKey);
+    group.latSum += item.lat;
+    group.lonSum += item.lon;
+    group.count += 1;
+  });
+  const cityNameCounts = new Map();
+  cityGroups.forEach((group) => {
+    const cityKey = normalizeLocationKey(group.city);
+    cityNameCounts.set(cityKey, (cityNameCounts.get(cityKey) || 0) + 1);
+  });
+  function addLocalLocationAlias(alias, entry) {
+    const key = normalizeLocationKey(alias);
+    if (!key || localLocationLookup[key]) return;
+    localLocationLookup[key] = entry;
+  }
+  cityGroups.forEach((group) => {
+    const lat = group.latSum / group.count;
+    const lon = group.lonSum / group.count;
+    const abbr = stateAbbreviations[group.state] || group.state;
+    const entry = {
+      name: `${group.city}, ${group.state}`,
+      label: `${group.city}, ${group.state}`,
+      lat,
+      lon,
+      source: "local-city",
+    };
+    addLocalLocationAlias(`${group.city}, ${group.state}`, entry);
+    addLocalLocationAlias(`${group.city} ${group.state}`, entry);
+    addLocalLocationAlias(`${group.city}, ${abbr}`, entry);
+    addLocalLocationAlias(`${group.city} ${abbr}`, entry);
+    if ((cityNameCounts.get(normalizeLocationKey(group.city)) || 0) === 1) {
+      addLocalLocationAlias(group.city, entry);
+    }
+  });
+  mapData.forEach((item) => {
+    const entry = {
+      name: item.name,
+      label: `${item.name} (${item.city}, ${item.state})`,
+      lat: item.lat,
+      lon: item.lon,
+      source: "local-attraction",
+    };
+    addLocalLocationAlias(item.name, entry);
+    addLocalLocationAlias(`${item.name}, ${item.city}, ${item.state}`, entry);
+    addLocalLocationAlias(`${item.name}, ${item.city}, ${stateAbbreviations[item.state] || item.state}`, entry);
   });
   const legend = typeOptions.map((type) => `<label class="chip"><input type="checkbox" class="type-filter" value="${htmlEscape(type)}" checked><span style="background:${typeColors[type] || "#555555"}"></span>${htmlEscape(type)}</label>`).join("");
   const stateControls = stateOptions.map((state) => `<label class="check"><input type="checkbox" class="state-filter" value="${htmlEscape(state)}" checked>${htmlEscape(state)}</label>`).join("");
@@ -1206,12 +1291,13 @@ function createMapHtml(data, detailedRouteGeometry = {}) {
     const routeRestDaysInput = document.getElementById("routeRestDays");
     const routeError = document.getElementById("routeError");
     const routeSummaryEl = document.getElementById("routeSummary");
-    const dayListEl = document.getElementById("dayList");
-    const dayColors = ["#245164", "#7c3aed", "#0f766e", "#b45309", "#be185d", "#1d4ed8", "#4d7c0f", "#9f1239"];
-    const reverseGeocodeCache = new Map();
-    let currentRouteSummary = null;
-    let currentDayPlan = [];
-    let currentRouteLayers = { linesByDay: new Map(), markersByDay: new Map(), stopBadges: [], activeDay: null };
+      const dayListEl = document.getElementById("dayList");
+      const dayColors = ["#245164", "#7c3aed", "#0f766e", "#b45309", "#be185d", "#1d4ed8", "#4d7c0f", "#9f1239"];
+      const reverseGeocodeCache = new Map();
+      const localLocationLookup = ${JSON.stringify(localLocationLookup)};
+      let currentRouteSummary = null;
+      let currentDayPlan = [];
+      let currentRouteLayers = { linesByDay: new Map(), markersByDay: new Map(), stopBadges: [], activeDay: null };
     function attractionKey(item) {
       return [item.state, item.city, item.name].join(" | ");
     }
@@ -1550,18 +1636,49 @@ function createMapHtml(data, detailedRouteGeometry = {}) {
     function getSelectedAttractionsForRouting() {
       return activeAttractions.filter((item) => item.selected);
     }
-    async function geocodeLocation(query) {
-      const url = "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=" + encodeURIComponent(query);
-      const response = await fetch(url, { headers: { Accept: "application/json" } });
-      if (!response.ok) throw new Error("Geocoding failed");
-      const data = await response.json();
-      if (!Array.isArray(data) || !data.length) throw new Error("Location not found");
+    function normalizeLocationText(value) {
+      return String(value || "")
+        .toLowerCase()
+        .replace(/&/g, " and ")
+        .replace(/[.]/g, " ")
+        .replace(/\s*,\s*/g, ", ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+    function resolveLocalLocation(query) {
+      const key = normalizeLocationText(query);
+      const entry = localLocationLookup[key];
+      if (!entry) return null;
       return {
         name: query,
-        label: data[0].display_name || query,
-        lat: Number(data[0].lat),
-        lon: Number(data[0].lon)
+        label: entry.label || query,
+        lat: Number(entry.lat),
+        lon: Number(entry.lon),
+        local: true,
+        source: entry.source || "local"
       };
+    }
+    async function geocodeLocation(query) {
+      const localMatch = resolveLocalLocation(query);
+      if (localMatch) return localMatch;
+      const url = "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=" + encodeURIComponent(query);
+      try {
+        const response = await fetch(url, { headers: { Accept: "application/json" } });
+        if (!response.ok) throw new Error("Geocoding failed");
+        const data = await response.json();
+        if (!Array.isArray(data) || !data.length) throw new Error("Location not found");
+        return {
+          name: query,
+          label: data[0].display_name || query,
+          lat: Number(data[0].lat),
+          lon: Number(data[0].lon)
+        };
+      } catch (error) {
+        throw new Error(error && error.message === "Location not found"
+          ? "Location not found"
+          : "Could not reach the geocoding service. Try a known city/state like Rochester, NY."
+        );
+      }
     }
     async function reverseGeocodeLocation(lat, lon) {
       const cacheKey = lat.toFixed(3) + "," + lon.toFixed(3);
