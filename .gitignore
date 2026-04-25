@@ -1,0 +1,10 @@
+node_modules/
+
+outputs/northern_states_roadtrip/attractions_data.json
+outputs/northern_states_roadtrip/attractions_preview.png
+outputs/northern_states_roadtrip/overview_preview.png
+outputs/northern_states_roadtrip/scenic roads_preview.png
+outputs/northern_states_roadtrip/sources_preview.png
+outputs/northern_states_roadtrip/states_preview.png
+outputs/northern_states_roadtrip/northern_states_roadtrip_attractions.xlsx
+outputs/northern_states_roadtrip/northern_states_roadtrip_map.html
