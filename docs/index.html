@@ -316,8 +316,8 @@
     function setRouteError(message) {
       routeError.textContent = message || "";
     }
-    function visitDurationHours(type) {
-      const map = {
+      function visitDurationHours(type) {
+        const map = {
         Observation: 0.75,
         Landmark: 0.75,
         Roadside: 0.75,
@@ -348,9 +348,16 @@
         Shopping: 3.5,
         "Food/Market": 3.5,
         "Food/Drink": 3.5
-      };
-      return map[type] || 2;
-    }
+        };
+        return map[type] || 2;
+      }
+      function routeNodeLabel(node) {
+        if (!node) return "";
+        if (node.kind === "attraction") return node.name;
+        if (node.kind === "end" || node.kind === "start" || node.kind === "waypoint-stop") return node.name;
+        if (node.city && node.state) return node.city + ", " + node.state;
+        return node.name || "";
+      }
     function haversineHours(a, b) {
       const R = 3958.8;
       const toRad = (deg) => deg * Math.PI / 180;
@@ -713,23 +720,24 @@
     function buildDrivingDays(startPoint, endPoint, expandedNodes, expandedLegs, maxDriveHoursPerDay) {
       const maxVisitHoursPerDay = 8;
       const days = [];
-      function emptyDay(dayNumber, originNode) {
-        return {
-          dayNumber,
-          type: "drive",
-          startLabel: originNode.name,
+        function emptyDay(dayNumber, originNode) {
+          return {
+            dayNumber,
+            type: "drive",
+            startLabel: originNode.name,
           startLat: originNode.lat,
           startLon: originNode.lon,
-          attractions: [],
-          driveHours: 0,
-          driveMiles: 0,
-          visitHours: 0,
-          pathSegments: [],
-          overnightLabel: "",
-          overnightLat: null,
-          overnightLon: null,
-          destinationReached: false,
-          summaryStopCount: 0
+            attractions: [],
+            driveHours: 0,
+            driveMiles: 0,
+            visitHours: 0,
+            pathSegments: [],
+            routeSegments: [],
+            overnightLabel: "",
+            overnightLat: null,
+            overnightLon: null,
+            destinationReached: false,
+            summaryStopCount: 0
         };
       }
       let dayNumber = 1;
@@ -750,14 +758,23 @@
           dayNumber += 1;
           currentDay = emptyDay(dayNumber, sourceNode);
           continue;
-        }
-        currentDay.driveHours += leg.durationHours;
-        currentDay.driveMiles += leg.distanceMiles;
-        currentDay.pathSegments.push(leg.path);
-        if (targetNode.kind === "attraction") {
-          currentDay.attractions.push({
-            key: attractionKey(targetNode),
-            name: targetNode.name,
+          }
+          currentDay.driveHours += leg.durationHours;
+          currentDay.driveMiles += leg.distanceMiles;
+          currentDay.pathSegments.push(leg.path);
+          currentDay.routeSegments.push({
+            path: leg.path,
+            startLabel: routeNodeLabel(sourceNode),
+            endLabel: routeNodeLabel(targetNode),
+            driveHours: leg.durationHours,
+            driveMiles: leg.distanceMiles,
+            attractionNames: targetNode.kind === "attraction" ? [targetNode.name] : [],
+            isSyntheticStop: targetNode.kind === "waypoint-stop"
+          });
+          if (targetNode.kind === "attraction") {
+            currentDay.attractions.push({
+              key: attractionKey(targetNode),
+              name: targetNode.name,
             city: targetNode.city,
             state: targetNode.state,
             type: targetNode.type,
@@ -802,16 +819,17 @@
           startLabel: anchorDay.overnightLabel,
           startLat: anchorDay.overnightLat,
           startLon: anchorDay.overnightLon,
-          attractions: [],
-          driveHours: 0,
-          driveMiles: 0,
-          visitHours: 0,
-          pathSegments: [],
-          overnightLabel: anchorDay.overnightLabel,
-          overnightLat: anchorDay.overnightLat,
-          overnightLon: anchorDay.overnightLon,
-          destinationReached: anchorDay.destinationReached,
-          summaryStopCount: 0
+            attractions: [],
+            driveHours: 0,
+            driveMiles: 0,
+            visitHours: 0,
+            pathSegments: [],
+            routeSegments: [],
+            overnightLabel: anchorDay.overnightLabel,
+            overnightLat: anchorDay.overnightLat,
+            overnightLon: anchorDay.overnightLon,
+            destinationReached: anchorDay.destinationReached,
+            summaryStopCount: 0
         });
         offset += 1;
       });
@@ -884,19 +902,34 @@
         renderRouteSummary();
       }
     }
-    function routeBadgeIcon(label, className) {
-      return L.divIcon({
-        className: "",
-        html: '<div class="' + className + '">' + esc(label) + '</div>',
-        iconSize: [34, 26],
-        iconAnchor: [17, 13]
-      });
-    }
-    function highlightDay(dayNumber) {
-      currentRouteLayers.activeDay = dayNumber;
-      dayListEl.querySelectorAll(".day-card").forEach((card) => {
-        card.classList.toggle("active", Number(card.dataset.day) === dayNumber);
-      });
+      function routeBadgeIcon(label, className) {
+        return L.divIcon({
+          className: "",
+          html: '<div class="' + className + '">' + esc(label) + '</div>',
+          iconSize: [34, 26],
+          iconAnchor: [17, 13]
+        });
+      }
+      function routeSegmentPopup(day, segment, index, totalSegments) {
+        const attractionsCovered = segment.attractionNames && segment.attractionNames.length
+          ? segment.attractionNames.map((name) => '<div class="day-stop">' + esc(name) + '</div>').join("")
+          : '<div class="day-stop">No attraction stop on this segment.</div>';
+        const segmentNote = segment.isSyntheticStop
+          ? '<div class="day-stop">Ends at an inserted overnight stop.</div>'
+          : '';
+        return '<div class="popup-title">Day ' + esc(day.dayNumber) + ' Segment ' + esc(index + 1) + ' of ' + esc(totalSegments) + '</div>' +
+          '<div><strong>Starting point:</strong> ' + esc(segment.startLabel) + '</div>' +
+          '<div><strong>End point:</strong> ' + esc(segment.endLabel) + '</div>' +
+          '<div><strong>Driving:</strong> ' + esc(round1(segment.driveHours)) + 'h, ' + esc(round1(segment.driveMiles)) + ' mi</div>' +
+          '<div><strong>Attractions covered:</strong></div>' +
+          attractionsCovered +
+          segmentNote;
+      }
+      function highlightDay(dayNumber) {
+        currentRouteLayers.activeDay = dayNumber;
+        dayListEl.querySelectorAll(".day-card").forEach((card) => {
+          card.classList.toggle("active", Number(card.dataset.day) === dayNumber);
+        });
       currentRouteLayers.linesByDay.forEach((lines, key) => {
         lines.forEach((line) => line.setStyle({
           weight: key === dayNumber ? 7 : 4,
@@ -914,19 +947,20 @@
       clearRouteVisuals(true);
       const bounds = [];
       let stopOrder = 1;
-      dayPlan.forEach((day) => {
-        const markers = [];
-        const lines = [];
-        if (day.type === "drive") {
-          const color = dayColors[(day.dayNumber - 1) % dayColors.length];
-          day.pathSegments.forEach((segment) => {
-            const line = L.polyline(segment, { color, weight: 4, opacity: 0.82 }).addTo(routeLineLayer);
-            line.on("click", () => highlightDay(day.dayNumber));
-            lines.push(line);
-            segment.forEach((point) => bounds.push(point));
-          });
-          day.attractions.forEach((stop) => {
-            const badge = L.marker([stop.lat, stop.lon], { icon: routeBadgeIcon(String(stopOrder), "route-badge"), keyboard: false }).addTo(routeMarkerLayer);
+        dayPlan.forEach((day) => {
+          const markers = [];
+          const lines = [];
+          if (day.type === "drive") {
+            const color = dayColors[(day.dayNumber - 1) % dayColors.length];
+            day.routeSegments.forEach((segment, index) => {
+              const line = L.polyline(segment.path, { color, weight: 4, opacity: 0.82 }).addTo(routeLineLayer);
+              line.bindPopup(routeSegmentPopup(day, segment, index, day.routeSegments.length));
+              line.on("click", () => highlightDay(day.dayNumber));
+              lines.push(line);
+              segment.path.forEach((point) => bounds.push(point));
+            });
+            day.attractions.forEach((stop) => {
+              const badge = L.marker([stop.lat, stop.lon], { icon: routeBadgeIcon(String(stopOrder), "route-badge"), keyboard: false }).addTo(routeMarkerLayer);
             badge.bindPopup('<div class="popup-title">Stop ' + esc(stopOrder) + '</div><div>' + esc(stop.name) + '</div><div>' + esc(stop.city) + ', ' + esc(stop.state) + '</div><div>Day ' + esc(day.dayNumber) + '</div>');
             badge.on("click", () => highlightDay(day.dayNumber));
             markers.push(badge);
