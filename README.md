@@ -2,6 +2,10 @@
 
 Interactive road-trip planner for northern U.S. states.
 
+## Live App
+
+[Open the TripPlanner app](https://yaronshap.github.io/TripPlanner/)
+
 ## GitHub Pages
 
 The published site lives in [`docs/index.html`](docs/index.html). Once this repository is pushed to GitHub:
