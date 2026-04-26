@@ -1061,6 +1061,7 @@ function createMapHtml(data, detailedRouteGeometry = {}) {
     .trim();
   const localLocationLookup = {};
   const cityGroups = new Map();
+  const stateGroups = new Map();
   mapData.forEach((item) => {
     const cityKey = `${item.city}|${item.state}`;
     if (!cityGroups.has(cityKey)) {
@@ -1076,6 +1077,18 @@ function createMapHtml(data, detailedRouteGeometry = {}) {
     group.latSum += item.lat;
     group.lonSum += item.lon;
     group.count += 1;
+    if (!stateGroups.has(item.state)) {
+      stateGroups.set(item.state, {
+        state: item.state,
+        latSum: 0,
+        lonSum: 0,
+        count: 0,
+      });
+    }
+    const stateGroup = stateGroups.get(item.state);
+    stateGroup.latSum += item.lat;
+    stateGroup.lonSum += item.lon;
+    stateGroup.count += 1;
   });
   const cityNameCounts = new Map();
   cityGroups.forEach((group) => {
@@ -1106,6 +1119,17 @@ function createMapHtml(data, detailedRouteGeometry = {}) {
       addLocalLocationAlias(group.city, entry);
     }
   });
+  stateGroups.forEach((group) => {
+    const entry = {
+      name: group.state,
+      label: group.state,
+      lat: group.latSum / group.count,
+      lon: group.lonSum / group.count,
+      source: "local-state",
+    };
+    addLocalLocationAlias(group.state, entry);
+    addLocalLocationAlias(stateAbbreviations[group.state] || group.state, entry);
+  });
   mapData.forEach((item) => {
     const entry = {
       name: item.name,
@@ -1118,6 +1142,7 @@ function createMapHtml(data, detailedRouteGeometry = {}) {
     addLocalLocationAlias(`${item.name}, ${item.city}, ${item.state}`, entry);
     addLocalLocationAlias(`${item.name}, ${item.city}, ${stateAbbreviations[item.state] || item.state}`, entry);
   });
+  const localLocationEntries = Object.entries(localLocationLookup);
   const legend = typeOptions.map((type) => `<label class="chip"><input type="checkbox" class="type-filter" value="${htmlEscape(type)}" checked><span style="background:${typeColors[type] || "#555555"}"></span>${htmlEscape(type)}</label>`).join("");
   const stateControls = stateOptions.map((state) => `<label class="check"><input type="checkbox" class="state-filter" value="${htmlEscape(state)}" checked>${htmlEscape(state)}</label>`).join("");
   const roadControls = roadData.map((road) => `<label class="check"><input type="checkbox" class="road-filter" value="${htmlEscape(road.name)}" checked>${htmlEscape(road.name)}</label>`).join("");
@@ -1295,6 +1320,7 @@ function createMapHtml(data, detailedRouteGeometry = {}) {
       const dayColors = ["#245164", "#7c3aed", "#0f766e", "#b45309", "#be185d", "#1d4ed8", "#4d7c0f", "#9f1239"];
       const reverseGeocodeCache = new Map();
       const localLocationLookup = ${JSON.stringify(localLocationLookup)};
+      const localLocationEntries = ${JSON.stringify(localLocationEntries)};
       let currentRouteSummary = null;
       let currentDayPlan = [];
       let currentRouteLayers = { linesByDay: new Map(), markersByDay: new Map(), stopBadges: [], activeDay: null };
@@ -1652,10 +1678,60 @@ function createMapHtml(data, detailedRouteGeometry = {}) {
         .replace(/\s+/g, " ")
         .trim();
     }
+    function compactLocationText(value) {
+      return normalizeLocationText(value).replace(/[^a-z0-9]/g, "");
+    }
+    function scoreLocalLocationMatch(queryKey, aliasKey) {
+      if (!queryKey || !aliasKey) return 0;
+      if (queryKey === aliasKey) return 1000;
+      const queryCompact = compactLocationText(queryKey);
+      const aliasCompact = compactLocationText(aliasKey);
+      if (queryCompact && queryCompact === aliasCompact) return 950;
+      const queryTokens = queryKey.split(/[,\s]+/).filter(Boolean);
+      const aliasTokens = aliasKey.split(/[,\s]+/).filter(Boolean);
+      let score = 0;
+      if (aliasKey.startsWith(queryKey) || queryKey.startsWith(aliasKey)) score += 180;
+      if (aliasKey.includes(queryKey) || queryKey.includes(aliasKey)) score += 120;
+      queryTokens.forEach((token) => {
+        if (aliasTokens.includes(token)) score += token.length >= 4 ? 70 : 35;
+        else if (aliasTokens.some((aliasToken) => aliasToken.startsWith(token) || token.startsWith(aliasToken))) {
+          score += token.length >= 4 ? 35 : 15;
+        }
+      });
+      if (queryCompact && aliasCompact && (aliasCompact.includes(queryCompact) || queryCompact.includes(aliasCompact))) {
+        score += 90;
+      }
+      return score;
+    }
     function resolveLocalLocation(query) {
       const key = normalizeLocationText(query);
       const entry = localLocationLookup[key];
-      if (!entry) return null;
+      if (!entry) {
+        const compactKey = compactLocationText(key);
+        let bestEntry = null;
+        let bestScore = 0;
+        localLocationEntries.forEach(([aliasKey, candidate]) => {
+          const score = scoreLocalLocationMatch(key, aliasKey);
+          if (compactKey && compactKey === compactLocationText(aliasKey) && score < 950) {
+            bestEntry = candidate;
+            bestScore = 950;
+            return;
+          }
+          if (score > bestScore) {
+            bestScore = score;
+            bestEntry = candidate;
+          }
+        });
+        if (!bestEntry || bestScore < 180) return null;
+        return {
+          name: query,
+          label: bestEntry.label || query,
+          lat: Number(bestEntry.lat),
+          lon: Number(bestEntry.lon),
+          local: true,
+          source: bestEntry.source || "local"
+        };
+      }
       return {
         name: query,
         label: entry.label || query,
