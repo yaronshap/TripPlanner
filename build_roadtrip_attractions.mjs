@@ -1257,6 +1257,8 @@ function createMapHtml(data, detailedRouteGeometry = {}) {
         <div class="route-actions">
           <button id="computeRoute">Compute Route</button>
           <button id="clearRoute">Clear Route</button>
+          <button id="toggleRouteLines">Hide Route</button>
+          <button id="toggleNightStops">Hide Night Stops</button>
         </div>
         <div id="routeError" class="route-error"></div>
         <div id="routeSummary" class="route-summary"></div>
@@ -1314,6 +1316,8 @@ function createMapHtml(data, detailedRouteGeometry = {}) {
     const routeEndInput = document.getElementById("routeEnd");
     const routeMaxHoursInput = document.getElementById("routeMaxHours");
     const routeRestDaysInput = document.getElementById("routeRestDays");
+    const toggleRouteLinesButton = document.getElementById("toggleRouteLines");
+    const toggleNightStopsButton = document.getElementById("toggleNightStops");
     const routeError = document.getElementById("routeError");
     const routeSummaryEl = document.getElementById("routeSummary");
       const dayListEl = document.getElementById("dayList");
@@ -1323,7 +1327,15 @@ function createMapHtml(data, detailedRouteGeometry = {}) {
       const localLocationEntries = ${JSON.stringify(localLocationEntries)};
       let currentRouteSummary = null;
       let currentDayPlan = [];
-      let currentRouteLayers = { linesByDay: new Map(), markersByDay: new Map(), stopBadges: [], activeDay: null };
+      let routeDisplayState = { showRouteLines: true, showNightStops: true };
+      let currentRouteLayers = {
+        linesByDay: new Map(),
+        markersByDay: new Map(),
+        routeLines: [],
+        overnightMarkers: [],
+        stopBadges: [],
+        activeDay: null
+      };
     function attractionKey(item) {
       return [item.state, item.city, item.name].join(" | ");
     }
@@ -1368,6 +1380,8 @@ function createMapHtml(data, detailedRouteGeometry = {}) {
           endLabel: routeEndInput.options[routeEndInput.selectedIndex] ? routeEndInput.options[routeEndInput.selectedIndex].text : "",
           maxDriveHoursPerDay: routeMaxHoursInput.value,
           restDays: routeRestDaysInput.value,
+          showRouteLines: routeDisplayState.showRouteLines,
+          showNightStops: routeDisplayState.showNightStops,
         },
         routeSummary: currentRouteSummary,
         dayPlan: persistedDayPlan,
@@ -1462,8 +1476,32 @@ function createMapHtml(data, detailedRouteGeometry = {}) {
       routeStartInput.value = routeSelectionValueForSavedInput(routeInputs.startLocation || routeInputs.startLocationKey || routeInputs.startLabel, fallbackKey);
       routeEndInput.value = routeSelectionValueForSavedInput(routeInputs.endLocation || routeInputs.endLocationKey || routeInputs.endLabel, fallbackKey);
     }
+    function updateRouteToggleButtons() {
+      toggleRouteLinesButton.textContent = routeDisplayState.showRouteLines ? "Hide Route" : "Show Route";
+      toggleNightStopsButton.textContent = routeDisplayState.showNightStops ? "Hide Night Stops" : "Show Night Stops";
+    }
+    function applyRouteVisibility() {
+      currentRouteLayers.routeLines.forEach((line) => {
+        if (routeDisplayState.showRouteLines) {
+          if (!routeLineLayer.hasLayer(line)) routeLineLayer.addLayer(line);
+        } else if (routeLineLayer.hasLayer(line)) {
+          routeLineLayer.removeLayer(line);
+        }
+      });
+      currentRouteLayers.overnightMarkers.forEach((marker) => {
+        if (routeDisplayState.showNightStops) {
+          if (!routeMarkerLayer.hasLayer(marker)) routeMarkerLayer.addLayer(marker);
+        } else if (routeMarkerLayer.hasLayer(marker)) {
+          routeMarkerLayer.removeLayer(marker);
+        }
+      });
+      updateRouteToggleButtons();
+    }
     function restoreRouteInputs(routeInputs) {
       renderRouteLocationOptions(routeInputs || {});
+      routeDisplayState.showRouteLines = routeInputs && typeof routeInputs.showRouteLines === "boolean" ? routeInputs.showRouteLines : true;
+      routeDisplayState.showNightStops = routeInputs && typeof routeInputs.showNightStops === "boolean" ? routeInputs.showNightStops : true;
+      updateRouteToggleButtons();
       if (!routeInputs) return;
       if (routeInputs.maxDriveHoursPerDay !== undefined && routeInputs.maxDriveHoursPerDay !== null && routeInputs.maxDriveHoursPerDay !== "") routeMaxHoursInput.value = routeInputs.maxDriveHoursPerDay;
       if (routeInputs.restDays !== undefined && routeInputs.restDays !== null && routeInputs.restDays !== "") routeRestDaysInput.value = routeInputs.restDays;
@@ -2149,7 +2187,14 @@ function createMapHtml(data, detailedRouteGeometry = {}) {
     function clearRouteVisuals(preserveSummary = false) {
       routeLineLayer.clearLayers();
       routeMarkerLayer.clearLayers();
-      currentRouteLayers = { linesByDay: new Map(), markersByDay: new Map(), stopBadges: [], activeDay: null };
+      currentRouteLayers = {
+        linesByDay: new Map(),
+        markersByDay: new Map(),
+        routeLines: [],
+        overnightMarkers: [],
+        stopBadges: [],
+        activeDay: null
+      };
       if (!preserveSummary) {
         currentRouteSummary = null;
         currentDayPlan = [];
@@ -2211,17 +2256,19 @@ function createMapHtml(data, detailedRouteGeometry = {}) {
               line.bindPopup(routeSegmentPopup(day, segment, index, day.routeSegments.length));
               line.on("click", () => highlightDay(day.dayNumber));
               lines.push(line);
+              currentRouteLayers.routeLines.push(line);
               segment.path.forEach((point) => bounds.push(point));
             });
             day.attractions.forEach((stop) => {
               const badge = L.marker([stop.lat, stop.lon], { icon: routeBadgeIcon(String(stopOrder), "route-badge"), keyboard: false }).addTo(routeMarkerLayer);
-            badge.bindPopup('<div class="popup-title">Stop ' + esc(stopOrder) + '</div><div>' + esc(stop.name) + '</div><div>' + esc(stop.city) + ', ' + esc(stop.state) + '</div><div>Day ' + esc(day.dayNumber) + '</div>');
-            badge.on("click", () => highlightDay(day.dayNumber));
-            markers.push(badge);
-            bounds.push([stop.lat, stop.lon]);
-            stopOrder += 1;
-          });
-        }
+              badge.bindPopup('<div class="popup-title">Stop ' + esc(stopOrder) + '</div><div>' + esc(stop.name) + '</div><div>' + esc(stop.city) + ', ' + esc(stop.state) + '</div><div>Day ' + esc(day.dayNumber) + '</div>');
+              badge.on("click", () => highlightDay(day.dayNumber));
+              markers.push(badge);
+              currentRouteLayers.stopBadges.push(badge);
+              bounds.push([stop.lat, stop.lon]);
+              stopOrder += 1;
+            });
+          }
         const restClass = day.type === "rest" ? "night-badge rest-badge" : "night-badge";
         const restLabel = day.type === "rest" ? "Rest " + day.dayNumber : (day.destinationReached ? "Day " + day.dayNumber : "Night " + day.dayNumber);
         const overnightMarker = L.marker([day.overnightLat, day.overnightLon], { icon: routeBadgeIcon(restLabel, restClass), keyboard: false }).addTo(routeMarkerLayer);
@@ -2230,16 +2277,18 @@ function createMapHtml(data, detailedRouteGeometry = {}) {
           '<div>' + esc(day.overnightLabel) + '</div>' +
           '<div>' + esc(day.type === "rest" ? "No driving scheduled." : round1(day.driveHours) + 'h driving, ' + day.summaryStopCount + ' attractions.') + '</div>'
         );
-        overnightMarker.on("click", () => highlightDay(day.dayNumber));
-        markers.push(overnightMarker);
-        bounds.push([day.overnightLat, day.overnightLon]);
-        currentRouteLayers.linesByDay.set(day.dayNumber, lines);
-        currentRouteLayers.markersByDay.set(day.dayNumber, markers);
-      });
-      renderRouteSummary();
-      if (dayPlan.length) highlightDay(1);
-      if (fitToBounds && bounds.length) map.fitBounds(bounds, { padding: [40, 40], maxZoom: 8 });
-    }
+          overnightMarker.on("click", () => highlightDay(day.dayNumber));
+          markers.push(overnightMarker);
+          currentRouteLayers.overnightMarkers.push(overnightMarker);
+          bounds.push([day.overnightLat, day.overnightLon]);
+          currentRouteLayers.linesByDay.set(day.dayNumber, lines);
+          currentRouteLayers.markersByDay.set(day.dayNumber, markers);
+        });
+        renderRouteSummary();
+        applyRouteVisibility();
+        if (dayPlan.length) highlightDay(1);
+        if (fitToBounds && bounds.length) map.fitBounds(bounds, { padding: [40, 40], maxZoom: 8 });
+      }
     async function computeRoutePlan() {
       setRouteError("");
       const selectedAttractions = getSelectedAttractionsForRouting();
@@ -2423,9 +2472,9 @@ function createMapHtml(data, detailedRouteGeometry = {}) {
         event.target.value = "";
       }
     });
-    document.getElementById("workbookInput").addEventListener("change", async (event) => {
-      const file = event.target.files && event.target.files[0];
-      if (!file || !window.XLSX) return;
+      document.getElementById("workbookInput").addEventListener("change", async (event) => {
+        const file = event.target.files && event.target.files[0];
+        if (!file || !window.XLSX) return;
       const buffer = await file.arrayBuffer();
       const wb = XLSX.read(buffer);
       const attractionRows = XLSX.utils.sheet_to_json(wb.Sheets.Attractions || wb.Sheets["Attractions"], { defval: "" });
@@ -2475,33 +2524,44 @@ function createMapHtml(data, detailedRouteGeometry = {}) {
       clearRouteVisuals();
       setRouteError("");
       update({ fitToBounds: true });
-    });
-    document.getElementById("computeRoute").addEventListener("click", () => { computeRoutePlan(); });
-    document.getElementById("clearRoute").addEventListener("click", () => {
-      clearRouteVisuals();
-      setRouteError("");
-      saveStoredState();
-    });
-    dayListEl.addEventListener("click", (event) => {
-      const card = event.target.closest(".day-card");
-      if (!card) return;
-      highlightDay(Number(card.dataset.day));
-    });
+      });
+      document.getElementById("computeRoute").addEventListener("click", () => { computeRoutePlan(); });
+      document.getElementById("clearRoute").addEventListener("click", () => {
+        clearRouteVisuals();
+        setRouteError("");
+        saveStoredState();
+      });
+      toggleRouteLinesButton.addEventListener("click", () => {
+        routeDisplayState.showRouteLines = !routeDisplayState.showRouteLines;
+        applyRouteVisibility();
+        saveStoredState();
+      });
+      toggleNightStopsButton.addEventListener("click", () => {
+        routeDisplayState.showNightStops = !routeDisplayState.showNightStops;
+        applyRouteVisibility();
+        saveStoredState();
+      });
+      dayListEl.addEventListener("click", (event) => {
+        const card = event.target.closest(".day-card");
+        if (!card) return;
+        highlightDay(Number(card.dataset.day));
+      });
     dayListEl.addEventListener("mouseover", (event) => {
       const card = event.target.closest(".day-card");
       if (!card) return;
       highlightDay(Number(card.dataset.day));
     });
     const restoredFilters = applyStoredSelections();
-    const restoredState = loadStoredState();
-    restoreFilterState(restoredFilters);
-    restoreRouteInputs(restoredState.routeInputs);
-    if (restoredState.routeSummary && hasCompatibleSavedRoute(restoredState.dayPlan)) {
-      currentRouteSummary = restoredState.routeSummary;
-      currentDayPlan = restoredState.dayPlan;
-      renderRouteSummary();
-    }
-    update({ fitToBounds: true });
+      const restoredState = loadStoredState();
+      restoreFilterState(restoredFilters);
+      restoreRouteInputs(restoredState.routeInputs);
+      if (restoredState.routeSummary && hasCompatibleSavedRoute(restoredState.dayPlan)) {
+        currentRouteSummary = restoredState.routeSummary;
+        currentDayPlan = restoredState.dayPlan;
+        renderRouteSummary();
+      }
+      updateRouteToggleButtons();
+      update({ fitToBounds: true });
   </script>
 </body>
 </html>`;
