@@ -1192,7 +1192,7 @@ function createMapHtml(data, detailedRouteGeometry = {}) {
     .route-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .route-grid .field-wide { grid-column: 1 / -1; }
     .route-panel label { display: block; font-size: 12px; color: #53636d; margin-bottom: 4px; }
-    .route-panel input[type="text"], .route-panel input[type="number"] { width: 100%; padding: 8px 10px; border: 1px solid #c9d6dc; border-radius: 8px; font-size: 13px; }
+    .route-panel input[type="number"], .route-panel select { width: 100%; padding: 8px 10px; border: 1px solid #c9d6dc; border-radius: 8px; font-size: 13px; background: #fff; }
     .route-actions { display: flex; gap: 8px; margin-top: 10px; }
     .route-error { margin-top: 8px; color: #b91c1c; font-size: 12px; min-height: 16px; }
     .route-summary { margin-top: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -1238,12 +1238,12 @@ function createMapHtml(data, detailedRouteGeometry = {}) {
         <h2>Route Planner</h2>
         <div class="route-grid">
           <div class="field-wide">
-            <label for="routeStart">Start location</label>
-            <input id="routeStart" type="text" value="Rochester, NY">
+            <label for="routeStart">Start attraction</label>
+            <select id="routeStart"></select>
           </div>
           <div class="field-wide">
-            <label for="routeEnd">End location</label>
-            <input id="routeEnd" type="text" value="Rochester, NY">
+            <label for="routeEnd">End attraction</label>
+            <select id="routeEnd"></select>
           </div>
           <div>
             <label for="routeMaxHours">Max driving hours / day</label>
@@ -1330,6 +1330,9 @@ function createMapHtml(data, detailedRouteGeometry = {}) {
     function roadKey(item) {
       return [item.state, item.name].join(" | ");
     }
+    function routeAttractionByKey(key) {
+      return activeAttractions.find((item) => attractionKey(item) === key) || null;
+    }
     function loadStoredState() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
@@ -1361,6 +1364,8 @@ function createMapHtml(data, detailedRouteGeometry = {}) {
         routeInputs: {
           startLocation: routeStartInput.value,
           endLocation: routeEndInput.value,
+          startLabel: routeStartInput.options[routeStartInput.selectedIndex] ? routeStartInput.options[routeStartInput.selectedIndex].text : "",
+          endLabel: routeEndInput.options[routeEndInput.selectedIndex] ? routeEndInput.options[routeEndInput.selectedIndex].text : "",
           maxDriveHoursPerDay: routeMaxHoursInput.value,
           restDays: routeRestDaysInput.value,
         },
@@ -1406,10 +1411,60 @@ function createMapHtml(data, detailedRouteGeometry = {}) {
       if (Array.isArray(filters.roads)) document.querySelectorAll(".road-filter").forEach((el) => { el.checked = filters.roads.includes(el.value); });
       if (typeof filters.showRoads === "boolean") document.getElementById("showRoads").checked = filters.showRoads;
     }
+    function normalizeRouteOptionText(value) {
+      return String(value || "")
+        .toLowerCase()
+        .replace(/&/g, " and ")
+        .replace(/[.]/g, " ")
+        .replace(/\s*,\s*/g, ", ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+    function defaultRouteAttractionKey() {
+      const rochesterItem = activeAttractions.find((item) => item.city === "Rochester" && item.state === "New York");
+      return rochesterItem ? attractionKey(rochesterItem) : (activeAttractions[0] ? attractionKey(activeAttractions[0]) : "");
+    }
+    function routeSelectionValueForSavedInput(savedValue, fallbackValue) {
+      const optionValues = [...routeStartInput.options].map((option) => option.value);
+      if (savedValue && optionValues.includes(savedValue)) return savedValue;
+      const normalizedSaved = normalizeRouteOptionText(savedValue);
+      if (normalizedSaved) {
+        const match = activeAttractions.find((item) => {
+          const abbr = ${JSON.stringify(stateAbbreviations)}[item.state] || item.state;
+          const candidates = [
+            attractionKey(item),
+            item.name,
+            item.name + " (" + item.city + ", " + item.state + ")",
+            item.name + " - " + item.city + ", " + item.state,
+            item.city + ", " + item.state,
+            item.city + ", " + abbr
+          ];
+          return candidates.some((candidate) => normalizeRouteOptionText(candidate) === normalizedSaved);
+        });
+        if (match) return attractionKey(match);
+      }
+      return fallbackValue;
+    }
+    function renderRouteLocationOptions(routeInputs = {}) {
+      const items = activeAttractions.slice().sort((a, b) =>
+        a.state.localeCompare(b.state) ||
+        a.city.localeCompare(b.city) ||
+        a.name.localeCompare(b.name)
+      );
+      const optionHtml = items.map((item) => {
+        const key = attractionKey(item);
+        const label = item.name + " - " + item.city + ", " + item.state;
+        return '<option value="' + esc(key) + '">' + esc(label) + '</option>';
+      }).join("");
+      routeStartInput.innerHTML = optionHtml;
+      routeEndInput.innerHTML = optionHtml;
+      const fallbackKey = defaultRouteAttractionKey();
+      routeStartInput.value = routeSelectionValueForSavedInput(routeInputs.startLocation || routeInputs.startLocationKey || routeInputs.startLabel, fallbackKey);
+      routeEndInput.value = routeSelectionValueForSavedInput(routeInputs.endLocation || routeInputs.endLocationKey || routeInputs.endLabel, fallbackKey);
+    }
     function restoreRouteInputs(routeInputs) {
+      renderRouteLocationOptions(routeInputs || {});
       if (!routeInputs) return;
-      if (routeInputs.startLocation) routeStartInput.value = routeInputs.startLocation;
-      if (routeInputs.endLocation) routeEndInput.value = routeInputs.endLocation;
       if (routeInputs.maxDriveHoursPerDay !== undefined && routeInputs.maxDriveHoursPerDay !== null && routeInputs.maxDriveHoursPerDay !== "") routeMaxHoursInput.value = routeInputs.maxDriveHoursPerDay;
       if (routeInputs.restDays !== undefined && routeInputs.restDays !== null && routeInputs.restDays !== "") routeRestDaysInput.value = routeInputs.restDays;
     }
@@ -2198,8 +2253,8 @@ function createMapHtml(data, detailedRouteGeometry = {}) {
       }
       const maxDriveHoursPerDay = Number(routeMaxHoursInput.value || 5);
       const restDayCount = Math.max(0, Math.floor(Number(routeRestDaysInput.value || 0)));
-      const startText = routeStartInput.value.trim() || "Rochester, NY";
-      const endText = routeEndInput.value.trim() || "Rochester, NY";
+      const startKey = routeStartInput.value || defaultRouteAttractionKey();
+      const endKey = routeEndInput.value || defaultRouteAttractionKey();
       if (!Number.isFinite(maxDriveHoursPerDay) || maxDriveHoursPerDay <= 0) {
         setRouteError("Enter a valid maximum driving hours per day.");
         return;
@@ -2207,14 +2262,32 @@ function createMapHtml(data, detailedRouteGeometry = {}) {
       try {
         document.getElementById("computeRoute").disabled = true;
         document.getElementById("computeRoute").textContent = "Computing...";
-        const [startPoint, endPoint] = await Promise.all([geocodeLocation(startText), geocodeLocation(endText)]);
-        const orderedStops = buildOptimizedOrder(startPoint, selectedAttractions);
+        const startAttraction = routeAttractionByKey(startKey);
+        const endAttraction = routeAttractionByKey(endKey);
+        if (!startAttraction || !endAttraction) throw new Error("Choose valid start and end attractions.");
+        const startPoint = {
+          name: startAttraction.name,
+          label: startAttraction.name + " - " + startAttraction.city + ", " + startAttraction.state,
+          lat: startAttraction.lat,
+          lon: startAttraction.lon
+        };
+        const endPoint = {
+          name: endAttraction.name,
+          label: endAttraction.name + " - " + endAttraction.city + ", " + endAttraction.state,
+          lat: endAttraction.lat,
+          lon: endAttraction.lon
+        };
+        const routedAttractions = selectedAttractions.filter((item) => {
+          const key = attractionKey(item);
+          return key !== startKey && key !== endKey;
+        });
+        const orderedStops = buildOptimizedOrder(startPoint, routedAttractions);
           const routeResult = await fetchRouteLegs(startPoint, orderedStops, endPoint);
           const expandedRoute = await expandLongDriveLegs(startPoint, orderedStops, endPoint, routeResult.legs, maxDriveHoursPerDay);
           const driveDays = buildDrivingDays(startPoint, endPoint, expandedRoute.nodes, expandedRoute.legs, maxDriveHoursPerDay);
           const fullPlan = insertRestDays(driveDays, restDayCount);
           currentDayPlan = fullPlan;
-          currentRouteSummary = summarizeRoute(fullPlan, restDayCount, selectedAttractions.length, {
+          currentRouteSummary = summarizeRoute(fullPlan, restDayCount, routedAttractions.length, {
             approximateRouting: routeResult.usedApproximation,
             approximationReasons: routeResult.approximationReasons
           });
@@ -2397,6 +2470,7 @@ function createMapHtml(data, detailedRouteGeometry = {}) {
           };
         })
         .filter((item) => Array.isArray(item.path) && item.path.length > 1);
+      renderRouteLocationOptions(loadStoredState().routeInputs || {});
       applyStoredSelections();
       clearRouteVisuals();
       setRouteError("");
