@@ -15,23 +15,54 @@ const docsXlsxPath = path.join(docsDir, "northern_states_roadtrip_attractions.xl
 const noJekyllPath = path.join(docsDir, ".nojekyll");
 
 const states = [
-  ["New York", true, "Northern tier / starting state", "Included because Rochester is the starting point."],
-  ["Pennsylvania", true, "Second northern row", "Included as the southern partner below New York."],
-  ["Ohio", true, "Second northern row", "Included as the southern partner below Michigan."],
-  ["Michigan", true, "Northern tier", "Included as a Great Lakes border state."],
-  ["Indiana", true, "Second northern row", "Included as the southern partner below Michigan."],
-  ["Illinois", true, "Second northern row", "Included as the southern partner below Wisconsin."],
-  ["Wisconsin", true, "Northern tier", "Included as a Great Lakes border state."],
-  ["Minnesota", true, "Northern tier", "Included as a Canadian-border state."],
-  ["Iowa", true, "Second northern row", "Included as the southern partner below Minnesota."],
-  ["North Dakota", true, "Northern tier", "Included as a Canadian-border state."],
-  ["South Dakota", true, "Second northern row", "Included as the southern partner below North Dakota."],
-  ["Nebraska", true, "Added by request", "Included as a Great Plains extension south of South Dakota and Iowa."],
-  ["Montana", true, "Northern tier", "Included as a Canadian-border state."],
-  ["Wyoming", true, "Second northern row", "Included as the southern partner below Montana."],
-  ["Idaho", true, "Northern tier", "Included as a Canadian-border state."],
-  ["Washington", true, "Northern tier", "Included as a Pacific Northwest border state."],
-  ["Oregon", true, "Second northern row", "Included as the southern partner below Washington."],
+  ["Alabama", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["Arizona", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["Arkansas", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["California", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["Colorado", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["Connecticut", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["Delaware", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["Florida", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["Georgia", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["Idaho", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["Illinois", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["Indiana", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["Iowa", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["Kansas", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["Kentucky", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["Louisiana", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["Maine", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["Maryland", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["Massachusetts", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["Michigan", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["Minnesota", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["Mississippi", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["Missouri", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["Montana", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["Nebraska", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["Nevada", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["New Hampshire", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["New Jersey", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["New Mexico", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["New York", true, "Mainland USA / starting state", "Included because Rochester is the starting point and New York is one of the 48 contiguous U.S. states."],
+  ["North Carolina", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["North Dakota", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["Ohio", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["Oklahoma", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["Oregon", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["Pennsylvania", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["Rhode Island", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["South Carolina", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["South Dakota", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["Tennessee", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["Texas", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["Utah", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["Vermont", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["Virginia", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["Washington", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["West Virginia", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["Wisconsin", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
+  ["Wyoming", true, "Mainland USA", "Included as one of the 48 contiguous U.S. states."],
 ];
 
 const extraAttractions = [
@@ -581,25 +612,182 @@ const attractions = [
   ["Oregon", "Joseph", -117.211, 45.345, "Wallowa Lake and Hells Canyon Overlook", "Scenic drivers, hikers, families", "Alpine lake scenery and canyon viewpoints showcase far northeast Oregon.", "Nature"],
 ];
 
+const mainlandExpansionAttractions = [
+  ["Alabama", "Birmingham", -86.814, 33.516, "Birmingham Civil Rights Institute", "History travelers, students, families", "Powerful exhibits and nearby landmarks make civil-rights history tangible.", "Museum"],
+  ["Alabama", "Huntsville", -86.655, 34.711, "U.S. Space and Rocket Center", "Families, science fans", "Rockets, spacecraft, and simulators anchor a major space-history stop.", "Science"],
+  ["Alabama", "Gulf Shores", -87.653, 30.246, "Gulf State Park", "Beachgoers, families, cyclists", "White-sand beaches, trails, and coastal habitats create a full Gulf Coast stop.", "Beach"],
+
+  ["Arizona", "Grand Canyon Village", -112.112, 36.057, "Grand Canyon National Park", "First-time visitors, hikers, photographers", "Immense canyon overlooks and trails define one of America's signature landscapes.", "National Park"],
+  ["Arizona", "Sedona", -111.761, 34.869, "Sedona Red Rock Country", "Hikers, photographers, couples", "Red-rock buttes, trails, and desert light make a memorable scenic base.", "Nature"],
+  ["Arizona", "Page", -111.502, 36.862, "Horseshoe Bend", "Photographers, road trippers", "A short walk reaches a dramatic Colorado River overlook.", "Scenic Overlook"],
+
+  ["Arkansas", "Hot Springs", -93.054, 34.514, "Hot Springs National Park", "History travelers, spa fans, families", "Historic bathhouses and forested trails combine city and park experiences.", "National Park"],
+  ["Arkansas", "Eureka Springs", -93.739, 36.401, "Thorncrown Chapel", "Architecture fans, couples, scenic drivers", "A glass-and-wood chapel sits quietly in the Ozark forest.", "Architecture"],
+  ["Arkansas", "Murfreesboro", -93.676, 34.032, "Crater of Diamonds State Park", "Families, geology fans", "Visitors can search an open field for diamonds and keep what they find.", "Nature"],
+
+  ["California", "Yosemite Valley", -119.593, 37.745, "Yosemite National Park", "Hikers, photographers, families", "Granite cliffs, waterfalls, and giant sequoias make a classic Sierra stop.", "National Park"],
+  ["California", "San Francisco", -122.478, 37.819, "Golden Gate Bridge", "First-time visitors, walkers, photographers", "The landmark bridge frames bay, city, and coastal views.", "Landmark"],
+  ["California", "Monterey", -121.901, 36.618, "Monterey Bay Aquarium", "Families, marine-life fans", "World-class marine exhibits connect visitors to Pacific Ocean ecology.", "Zoo/Aquarium"],
+
+  ["Colorado", "Estes Park", -105.683, 40.343, "Rocky Mountain National Park", "Hikers, wildlife watchers, scenic drivers", "Alpine roads, lakes, and wildlife make a high-country centerpiece.", "National Park"],
+  ["Colorado", "Colorado Springs", -104.88, 38.878, "Garden of the Gods", "Families, hikers, photographers", "Red sandstone formations rise dramatically against Front Range peaks.", "Nature"],
+  ["Colorado", "Mesa Verde", -108.462, 37.231, "Mesa Verde National Park", "History travelers, families", "Cliff dwellings preserve extraordinary Ancestral Puebloan architecture.", "National Park"],
+
+  ["Connecticut", "Mystic", -71.963, 41.356, "Mystic Seaport Museum", "Families, maritime-history fans", "Historic ships and waterfront exhibits tell New England maritime stories.", "Museum"],
+  ["Connecticut", "New Haven", -72.931, 41.309, "Yale University Art Gallery", "Art lovers, college-town travelers", "A major free art collection anchors a walkable campus visit.", "Museum"],
+  ["Connecticut", "East Haddam", -72.344, 41.452, "Gillette Castle State Park", "Families, architecture fans", "A quirky stone castle overlooks the Connecticut River valley.", "Historic Site"],
+
+  ["Delaware", "Rehoboth Beach", -75.077, 38.716, "Rehoboth Beach Boardwalk", "Beachgoers, families, food lovers", "A classic beach boardwalk mixes sand, shops, arcades, and dining.", "Beach"],
+  ["Delaware", "Wilmington", -75.609, 39.803, "Nemours Estate", "Garden lovers, architecture fans", "A grand mansion and formal gardens create an elegant Brandywine Valley stop.", "Historic Site"],
+  ["Delaware", "Lewes", -75.119, 38.782, "Cape Henlopen State Park", "Beachgoers, birders, cyclists", "Atlantic beaches, dunes, trails, and wartime history fill a coastal park.", "Nature"],
+
+  ["Florida", "Homestead", -80.899, 25.286, "Everglades National Park", "Wildlife watchers, families, paddlers", "Wetlands, mangroves, birds, and alligators create a unique subtropical park.", "National Park"],
+  ["Florida", "Orlando", -81.549, 28.418, "Walt Disney World Resort", "Families, theme-park fans", "Large-scale themed parks and resorts make Orlando a major family destination.", "Theme Park"],
+  ["Florida", "St. Augustine", -81.312, 29.898, "Castillo de San Marcos National Monument", "History travelers, families", "A Spanish stone fort anchors the oldest European-founded city in the continental U.S.", "National Monument"],
+
+  ["Georgia", "Atlanta", -84.393, 33.763, "Georgia Aquarium", "Families, animal lovers", "Large marine habitats and whale sharks make a major downtown family stop.", "Zoo/Aquarium"],
+  ["Georgia", "Savannah", -81.094, 32.08, "Savannah Historic District", "History travelers, walkers, couples", "Squares, live oaks, architecture, and riverfront streets reward slow exploring.", "Historic Site"],
+  ["Georgia", "Atlanta", -84.373, 33.756, "Martin Luther King Jr. National Historical Park", "History travelers, students", "Historic buildings connect King's life and the civil-rights movement to place.", "National Park"],
+
+  ["Kansas", "Cottonwood Falls", -96.577, 38.44, "Tallgrass Prairie National Preserve", "Hikers, wildlife watchers, photographers", "Open prairie, bison, and ranch history preserve a rare grassland landscape.", "National Preserve"],
+  ["Kansas", "Hutchinson", -97.922, 38.065, "Cosmosphere", "Families, space-history fans", "Spacecraft, rockets, and Cold War artifacts create a substantial science stop.", "Science"],
+  ["Kansas", "Lindsborg", -97.674, 38.573, "Lindsborg and Coronado Heights", "Culture travelers, scenic drivers", "Swedish heritage and a hilltop castle overlook central Kansas farmland.", "Scenic Town"],
+
+  ["Kentucky", "Mammoth Cave", -86.101, 37.187, "Mammoth Cave National Park", "Families, cave fans, hikers", "The world's longest known cave system pairs guided tours with forest trails.", "National Park"],
+  ["Kentucky", "Louisville", -85.764, 38.257, "Louisville Slugger Museum and Factory", "Baseball fans, families", "Bat-making tours and baseball artifacts create an easy downtown stop.", "Museum"],
+  ["Kentucky", "Lexington", -84.604, 38.149, "Kentucky Horse Park", "Families, horse lovers", "Museums, shows, and barns explain the state's horse culture.", "Museum"],
+
+  ["Louisiana", "New Orleans", -90.063, 29.958, "French Quarter", "Music lovers, food lovers, first-time visitors", "Historic streets, live music, food, and architecture define New Orleans.", "Historic Site"],
+  ["Louisiana", "Vacherie", -90.776, 30.005, "Oak Alley Plantation", "History travelers, architecture fans", "A famous oak-lined approach frames a complex plantation-history site.", "Historic Site"],
+  ["Louisiana", "Lafayette", -92.019, 30.21, "Vermilionville Historic Village", "Culture travelers, families", "Living-history exhibits present Cajun, Creole, and Native American traditions.", "Living History"],
+
+  ["Maine", "Bar Harbor", -68.209, 44.338, "Acadia National Park", "Hikers, families, photographers", "Rocky coast, carriage roads, mountains, and ocean views define coastal Maine.", "National Park"],
+  ["Maine", "Portland", -70.228, 43.623, "Portland Head Light", "Photographers, history travelers, families", "A classic lighthouse overlooks Casco Bay from a rocky park.", "Historic Site"],
+  ["Maine", "Camden", -69.065, 44.21, "Camden Hills State Park", "Hikers, scenic drivers", "Mount Battie views sweep over harbor islands and Penobscot Bay.", "Nature"],
+
+  ["Maryland", "Baltimore", -76.619, 39.285, "National Aquarium", "Families, marine-life fans", "Harborfront exhibits and aquatic habitats anchor Baltimore's Inner Harbor.", "Zoo/Aquarium"],
+  ["Maryland", "Sharpsburg", -77.739, 39.476, "Antietam National Battlefield", "History travelers, students", "Preserved battlefield landscapes interpret a pivotal Civil War day.", "National Battlefield"],
+  ["Maryland", "Ocean City", -75.087, 38.333, "Ocean City Boardwalk", "Beachgoers, families", "Beach, amusements, food, and arcades create a classic Atlantic resort stop.", "Beach"],
+
+  ["Massachusetts", "Boston", -71.057, 42.359, "Freedom Trail", "History travelers, families, walkers", "A walkable route links many Revolutionary-era landmarks in central Boston.", "Historic Site"],
+  ["Massachusetts", "Stockbridge", -73.336, 42.283, "Norman Rockwell Museum", "Art lovers, families", "Illustration collections and studio context illuminate a beloved American artist.", "Museum"],
+  ["Massachusetts", "Provincetown", -70.178, 42.049, "Cape Cod National Seashore", "Beachgoers, cyclists, photographers", "Ocean beaches, dunes, lighthouses, and villages shape the outer Cape.", "National Seashore"],
+
+  ["Mississippi", "Biloxi", -88.885, 30.396, "Biloxi Lighthouse and Beach", "Beachgoers, families, photographers", "A Gulf Coast lighthouse and beach make an easy coastal landmark.", "Historic Site"],
+  ["Mississippi", "Jackson", -90.178, 32.298, "Mississippi Civil Rights Museum", "History travelers, students", "Strong exhibits trace the state's civil-rights struggles and leaders.", "Museum"],
+  ["Mississippi", "Tupelo", -88.719, 34.259, "Elvis Presley Birthplace", "Music fans, families", "A modest birthplace site connects Elvis history to north Mississippi.", "Historic Site"],
+
+  ["Missouri", "St. Louis", -90.184, 38.624, "Gateway Arch National Park", "Families, architecture fans, history travelers", "The soaring arch and museum mark westward expansion on the Mississippi.", "National Park"],
+  ["Missouri", "Kansas City", -94.587, 39.081, "National WWI Museum and Memorial", "History travelers, families", "Comprehensive exhibits and skyline views create a powerful museum visit.", "Museum"],
+  ["Missouri", "Branson", -93.338, 36.667, "Silver Dollar City", "Families, thrill seekers", "Coasters, crafts, shows, and Ozark theming make a major amusement stop.", "Theme Park"],
+
+  ["Nevada", "Boulder City", -114.737, 36.016, "Hoover Dam", "Engineering fans, families", "Massive concrete engineering and Colorado River views make a classic stop.", "Engineering"],
+  ["Nevada", "Las Vegas", -115.175, 36.114, "Las Vegas Strip", "Entertainment travelers, food lovers, architecture fans", "Resorts, shows, public art, and themed architecture create a dense urban spectacle.", "Entertainment"],
+  ["Nevada", "Baker", -114.257, 38.984, "Great Basin National Park", "Hikers, cave fans, stargazers", "Bristlecone pines, alpine terrain, caves, and dark skies reward a remote detour.", "National Park"],
+
+  ["New Hampshire", "Lincoln", -71.686, 44.054, "Kancamagus Highway", "Scenic drivers, leaf peepers, photographers", "Mountain roads, river stops, and fall color define a White Mountains drive.", "Scenic Drive"],
+  ["New Hampshire", "Franconia", -71.682, 44.161, "Franconia Notch State Park", "Hikers, families, photographers", "A mountain pass links trails, cliffs, lakes, and aerial tram views.", "Nature"],
+  ["New Hampshire", "Portsmouth", -70.754, 43.076, "Strawbery Banke Museum", "History travelers, families", "Preserved houses interpret centuries of coastal New Hampshire life.", "Living History"],
+
+  ["New Jersey", "Jersey City", -74.044, 40.69, "Liberty State Park", "Families, skyline watchers, walkers", "Harbor views frame Manhattan, Ellis Island, and the Statue of Liberty.", "Urban Park"],
+  ["New Jersey", "Cape May", -74.922, 38.935, "Cape May Historic District", "Beachgoers, architecture fans, couples", "Victorian streets, beaches, and lighthouse views create a polished shore stop.", "Historic Site"],
+  ["New Jersey", "Princeton", -74.667, 40.349, "Princeton University Art Museum and Campus", "Art lovers, architecture fans", "Campus walks and collections make Princeton a compact cultural stop.", "Museum"],
+
+  ["New Mexico", "Carlsbad", -104.553, 32.148, "Carlsbad Caverns National Park", "Cave fans, families, photographers", "Huge limestone chambers and bat flights create a dramatic underground visit.", "National Park"],
+  ["New Mexico", "Santa Fe", -105.938, 35.688, "Santa Fe Plaza and Palace of the Governors", "Art lovers, history travelers, food lovers", "Historic adobe architecture, museums, galleries, and food anchor downtown Santa Fe.", "Historic Site"],
+  ["New Mexico", "Alamogordo", -106.171, 32.779, "White Sands National Park", "Families, photographers, hikers", "Wave-like gypsum dunes create a bright and unusual desert landscape.", "National Park"],
+
+  ["North Carolina", "Asheville", -82.552, 35.54, "Biltmore Estate", "Architecture fans, garden lovers, families", "A grand mansion, gardens, and mountain setting anchor Asheville touring.", "Historic Site"],
+  ["North Carolina", "Manteo", -75.67, 35.936, "Outer Banks and Cape Hatteras National Seashore", "Beachgoers, lighthouse fans, families", "Barrier islands, lighthouses, and Atlantic beaches define the coast.", "National Seashore"],
+  ["North Carolina", "Bryson City", -83.489, 35.602, "Great Smoky Mountains National Park", "Hikers, families, wildlife watchers", "Forests, waterfalls, and mountain roads fill America's most visited national park.", "National Park"],
+
+  ["Oklahoma", "Oklahoma City", -97.517, 35.473, "Oklahoma City National Memorial and Museum", "History travelers, families", "A reflective memorial and museum honor victims and explain the 1995 bombing.", "Memorial"],
+  ["Oklahoma", "Tulsa", -95.965, 36.136, "Philbrook Museum of Art", "Art lovers, garden lovers", "An Italianate villa, gardens, and collections create a refined Tulsa stop.", "Museum"],
+  ["Oklahoma", "Sulphur", -97.018, 34.496, "Chickasaw National Recreation Area", "Families, hikers, swimmers", "Springs, streams, trails, and lakes make a gentle outdoor destination.", "National Recreation Area"],
+
+  ["Rhode Island", "Newport", -71.306, 41.469, "The Breakers", "Architecture fans, history travelers", "A Gilded Age mansion showcases Newport's grand seaside estate era.", "Historic Site"],
+  ["Rhode Island", "Providence", -71.407, 41.826, "RISD Museum", "Art lovers, design travelers", "A strong art and design collection sits beside a creative city campus.", "Museum"],
+  ["Rhode Island", "Narragansett", -71.455, 41.361, "Narragansett Town Beach", "Beachgoers, families, surfers", "A broad sandy beach gives Rhode Island a classic coastal stop.", "Beach"],
+
+  ["South Carolina", "Charleston", -79.931, 32.776, "Charleston Historic District", "History travelers, food lovers, walkers", "Historic streets, harbor views, and architecture define a major Southern city.", "Historic Site"],
+  ["South Carolina", "Hopkins", -80.78, 33.792, "Congaree National Park", "Hikers, paddlers, wildlife watchers", "Boardwalks and paddling routes explore old-growth bottomland forest.", "National Park"],
+  ["South Carolina", "Myrtle Beach", -78.887, 33.689, "Myrtle Beach Boardwalk", "Beachgoers, families", "Beach, restaurants, arcades, and entertainment create a busy coastal resort stop.", "Beach"],
+
+  ["Tennessee", "Gatlinburg", -83.508, 35.611, "Great Smoky Mountains National Park", "Hikers, families, wildlife watchers", "Mountain roads, trails, waterfalls, and wildlife anchor eastern Tennessee.", "National Park"],
+  ["Tennessee", "Memphis", -90.023, 35.047, "Graceland", "Music fans, families", "Elvis Presley's home and exhibits make a major American music-history stop.", "Historic Site"],
+  ["Tennessee", "Nashville", -86.778, 36.162, "Country Music Hall of Fame and Museum", "Music fans, culture travelers", "Artifacts, recordings, and exhibits tell country music's broad story.", "Museum"],
+
+  ["Texas", "San Antonio", -98.486, 29.426, "The Alamo and San Antonio Missions", "History travelers, families", "Spanish colonial missions and river-city history anchor San Antonio.", "Historic Site"],
+  ["Texas", "Big Bend", -103.25, 29.25, "Big Bend National Park", "Hikers, stargazers, scenic drivers", "Desert, mountains, canyons, and Rio Grande views reward a remote trip.", "National Park"],
+  ["Texas", "Houston", -95.089, 29.551, "Space Center Houston", "Families, science fans", "NASA history, spacecraft, and mission exhibits make a substantial science stop.", "Science"],
+
+  ["Utah", "Springdale", -112.989, 37.298, "Zion National Park", "Hikers, photographers, families", "Sandstone cliffs, canyon trails, and shuttle-access viewpoints define southern Utah.", "National Park"],
+  ["Utah", "Moab", -109.593, 38.733, "Arches National Park", "Hikers, photographers, scenic drivers", "Natural arches and red-rock formations create a compact desert landmark.", "National Park"],
+  ["Utah", "Bryce Canyon City", -112.187, 37.628, "Bryce Canyon National Park", "Photographers, hikers, families", "Hoodoo amphitheaters and rim walks make a vivid high-plateau stop.", "National Park"],
+
+  ["Vermont", "Stowe", -72.702, 44.466, "Stowe Mountain Resort and Smugglers Notch", "Scenic drivers, skiers, hikers", "Mountain roads, village charm, and trails define a classic Vermont base.", "Resort"],
+  ["Vermont", "Woodstock", -72.519, 43.632, "Marsh-Billings-Rockefeller National Historical Park", "History travelers, walkers", "Conservation history, trails, and village scenery combine in Woodstock.", "National Park"],
+  ["Vermont", "Shelburne", -73.231, 44.374, "Shelburne Museum", "Families, art lovers, history travelers", "Buildings, folk art, design, and Americana form a wide-ranging museum campus.", "Museum"],
+
+  ["Virginia", "Luray", -78.453, 38.664, "Shenandoah National Park", "Hikers, scenic drivers, wildlife watchers", "Skyline Drive, waterfalls, and Blue Ridge overlooks make a classic route.", "National Park"],
+  ["Virginia", "Williamsburg", -76.707, 37.27, "Colonial Williamsburg", "History travelers, families", "Restored streets and interpreters bring colonial-era Virginia into focus.", "Living History"],
+  ["Virginia", "Charlottesville", -78.452, 38.01, "Monticello", "History travelers, architecture fans", "Jefferson's mountaintop home offers architecture, gardens, and layered history.", "Historic Site"],
+
+  ["West Virginia", "Glen Jean", -81.081, 37.927, "New River Gorge National Park and Preserve", "Hikers, rafters, scenic drivers", "A deep gorge, bridge views, trails, and whitewater anchor southern West Virginia.", "National Park"],
+  ["West Virginia", "Davis", -79.469, 39.107, "Blackwater Falls State Park", "Waterfall fans, hikers, photographers", "Dark-water falls and canyon viewpoints make a mountain-state highlight.", "Nature"],
+  ["West Virginia", "Harpers Ferry", -77.731, 39.326, "Harpers Ferry National Historical Park", "History travelers, hikers", "Historic streets sit at a dramatic river confluence and Appalachian Trail crossing.", "National Park"],
+];
+
 const sourceRows = [
   ["General attraction selection", "State tourism and national park official sites were used as primary orientation sources, with well-known regional landmarks filled in from established public references."],
+  ["Alabama", "https://alabama.travel/"],
+  ["Arizona", "https://www.visitarizona.com/"],
+  ["Arkansas", "https://www.arkansas.com/"],
+  ["California", "https://www.visitcalifornia.com/"],
+  ["Colorado", "https://www.colorado.com/"],
+  ["Connecticut", "https://ctvisit.com/"],
+  ["Delaware", "https://www.visitdelaware.com/"],
+  ["Florida", "https://www.visitflorida.com/"],
+  ["Georgia", "https://www.exploregeorgia.org/"],
+  ["Idaho", "https://visitidaho.org/"],
+  ["Illinois", "https://www.enjoyillinois.com/"],
+  ["Indiana", "https://www.visitindiana.com/"],
+  ["Iowa", "https://www.traveliowa.com/"],
+  ["Kansas", "https://www.travelks.com/"],
+  ["Kentucky", "https://www.kentuckytourism.com/"],
+  ["Louisiana", "https://www.louisianatravel.com/"],
+  ["Maine", "https://visitmaine.com/"],
+  ["Maryland", "https://www.visitmaryland.org/"],
+  ["Massachusetts", "https://www.visitma.com/"],
+  ["Michigan", "https://www.michigan.org/"],
+  ["Minnesota", "https://www.exploreminnesota.com/"],
+  ["Mississippi", "https://visitmississippi.org/"],
+  ["Missouri", "https://www.visitmo.com/"],
+  ["Montana", "https://www.visitmt.com/"],
+  ["Nebraska", "https://visitnebraska.com/"],
+  ["Nevada", "https://travelnevada.com/"],
+  ["New Hampshire", "https://www.visitnh.gov/"],
+  ["New Jersey", "https://visitnj.org/"],
+  ["New Mexico", "https://www.newmexico.org/"],
   ["New York", "https://www.iloveny.com/things-to-do/"],
+  ["North Carolina", "https://www.visitnc.com/"],
+  ["North Dakota", "https://www.ndtourism.com/"],
   ["Pennsylvania", "https://www.visitpa.com/"],
   ["Ohio", "https://ohio.org/things-to-do"],
-  ["Michigan", "https://www.michigan.org/"],
-  ["Indiana", "https://www.visitindiana.com/"],
-  ["Illinois", "https://www.enjoyillinois.com/"],
-  ["Wisconsin", "https://www.travelwisconsin.com/"],
-  ["Minnesota", "https://www.exploreminnesota.com/"],
-  ["Iowa", "https://www.traveliowa.com/"],
-  ["North Dakota", "https://www.ndtourism.com/"],
-  ["South Dakota", "https://www.travelsouthdakota.com/"],
-  ["Nebraska", "https://visitnebraska.com/"],
-  ["Montana", "https://www.visitmt.com/"],
-  ["Wyoming", "https://travelwyoming.com/"],
-  ["Idaho", "https://visitidaho.org/"],
-  ["Washington", "https://stateofwatourism.com/"],
+  ["Oklahoma", "https://www.travelok.com/"],
   ["Oregon", "https://traveloregon.com/"],
+  ["Rhode Island", "https://www.visitrhodeisland.com/"],
+  ["South Carolina", "https://discoversouthcarolina.com/"],
+  ["South Dakota", "https://www.travelsouthdakota.com/"],
+  ["Tennessee", "https://www.tnvacation.com/"],
+  ["Texas", "https://www.traveltexas.com/"],
+  ["Utah", "https://www.visitutah.com/"],
+  ["Vermont", "https://www.vermontvacation.com/"],
+  ["Virginia", "https://www.virginia.org/"],
+  ["Washington", "https://stateofwatourism.com/"],
+  ["West Virginia", "https://wvtourism.com/"],
+  ["Wisconsin", "https://www.travelwisconsin.com/"],
+  ["Wyoming", "https://travelwyoming.com/"],
   ["National Park Service reference", "https://www.nps.gov/"],
   ["America's Byways", "https://www.byways.org/"],
   ["Wisconsin Scenic Byways", "https://wisconsindot.gov/Pages/travel/road/scenic-ways/default.aspx"],
@@ -611,23 +799,54 @@ const sourceRows = [
 ];
 
 const tourismSites = {
+  Alabama: "alabama.travel",
+  Arizona: "visitarizona.com",
+  Arkansas: "arkansas.com",
+  California: "visitcalifornia.com",
+  Colorado: "colorado.com",
+  Connecticut: "ctvisit.com",
+  Delaware: "visitdelaware.com",
+  Florida: "visitflorida.com",
+  Georgia: "exploregeorgia.org",
+  Idaho: "visitidaho.org",
+  Illinois: "enjoyillinois.com",
+  Indiana: "visitindiana.com",
+  Iowa: "traveliowa.com",
+  Kansas: "travelks.com",
+  Kentucky: "kentuckytourism.com",
+  Louisiana: "louisianatravel.com",
+  Maine: "visitmaine.com",
+  Maryland: "visitmaryland.org",
+  Massachusetts: "visitma.com",
+  Michigan: "michigan.org",
+  Minnesota: "exploreminnesota.com",
+  Mississippi: "visitmississippi.org",
+  Missouri: "visitmo.com",
+  Montana: "visitmt.com",
+  Nebraska: "visitnebraska.com",
+  Nevada: "travelnevada.com",
+  "New Hampshire": "visitnh.gov",
+  "New Jersey": "visitnj.org",
+  "New Mexico": "newmexico.org",
   "New York": "iloveny.com",
-  "Pennsylvania": "visitpa.com",
-  "Ohio": "ohio.org",
-  "Michigan": "michigan.org",
-  "Indiana": "visitindiana.com",
-  "Illinois": "enjoyillinois.com",
-  "Wisconsin": "travelwisconsin.com",
-  "Minnesota": "exploreminnesota.com",
-  "Iowa": "traveliowa.com",
+  "North Carolina": "visitnc.com",
   "North Dakota": "ndtourism.com",
+  Ohio: "ohio.org",
+  Oklahoma: "travelok.com",
+  Oregon: "traveloregon.com",
+  "Pennsylvania": "visitpa.com",
+  "Rhode Island": "visitrhodeisland.com",
+  "South Carolina": "discoversouthcarolina.com",
   "South Dakota": "travelsouthdakota.com",
-  "Nebraska": "visitnebraska.com",
-  "Montana": "visitmt.com",
-  "Wyoming": "travelwyoming.com",
-  "Idaho": "visitidaho.org",
+  Tennessee: "tnvacation.com",
+  Texas: "traveltexas.com",
+  Utah: "visitutah.com",
+  Vermont: "vermontvacation.com",
+  Virginia: "virginia.org",
   "Washington": "stateofwatourism.com",
-  "Oregon": "traveloregon.com",
+  "West Virginia": "wvtourism.com",
+  Wisconsin: "travelwisconsin.com",
+  Wyoming: "travelwyoming.com",
 };
 
 const scenicRoads = [
@@ -811,7 +1030,7 @@ function htmlEscape(value) {
 }
 
 function rowsForWorkbook() {
-  return [...attractions, ...extraAttractions].map((row, index) => {
+  return [...attractions, ...extraAttractions, ...mainlandExpansionAttractions].map((row, index) => {
     const item = {
       id: index + 1,
       state: row[0],
@@ -850,20 +1069,20 @@ async function createWorkbook(data) {
   }
 
   overview.getRange("A1:H1").merge();
-  overview.getRange("A1").values = [["Northern States Road Trip Attraction Planner"]];
+  overview.getRange("A1").values = [["Mainland USA Road Trip Attraction Planner"]];
   overview.getRange("A1").format = { fill: "#1F4E5F", font: { bold: true, color: "#FFFFFF", size: 16 }, horizontalAlignment: "left" };
   overview.getRange("A3:B9").values = [
     ["Starting point", "Rochester, NY"],
-    ["State scope", "Upper two-state band westward from New York, plus Nebraska"],
+    ["State scope", "All 48 contiguous U.S. states"],
     ["States included", states.length],
     ["Attractions included", data.length],
     ["Scenic roads included", scenicRoads.length],
-    ["Default selection", "All scoped states and all attractions selected"],
+    ["Default selection", "All mainland states and all attractions selected"],
     ["Map companion", "Open northern_states_roadtrip_map.html"],
   ];
   overview.getRange("A3:A9").format = { font: { bold: true }, fill: "#E6F0F3" };
   overview.getRange("A11:H11").merge();
-  overview.getRange("A11").values = [["Use the States worksheet to toggle whole states, the Attraction Selected column on Attractions to toggle individual stops, and the Road Selected column on Scenic Roads to toggle scenic-route lines. The HTML map includes matching interactive controls and starts from the same default selection."]];
+  overview.getRange("A11").values = [["Use the States worksheet to toggle whole states, the Attraction Selected column on Attractions to toggle individual stops, and the Road Selected column on Scenic Roads to toggle scenic-route lines. The HTML map includes matching interactive controls and starts from the same default mainland-USA selection."]];
   overview.getRange("A11").format = { wrapText: true, fill: "#FFF8E1" };
   overview.getRange("A1:H12").format.columnWidth = 20;
 
@@ -986,11 +1205,7 @@ async function createWorkbook(data) {
   });
   console.log(errorScan.ndjson);
 
-  for (const sheetName of ["Overview", "States", "Attractions", "Scenic Roads", "Sources"]) {
-    const preview = await workbook.render({ sheetName, autoCrop: "all", scale: 1, format: "png" });
-    const bytes = new Uint8Array(await preview.arrayBuffer());
-    await fs.writeFile(path.join(outputDir, `${sheetName.toLowerCase()}_preview.png`), bytes);
-  }
+  console.log("Skipped workbook preview images for the expanded mainland-USA dataset.");
 
   const xlsx = await SpreadsheetFile.exportXlsx(workbook);
   await xlsx.save(xlsxPath);
@@ -1000,23 +1215,54 @@ function createMapHtml(data, detailedRouteGeometry = {}) {
   const typeOptions = [...new Set(data.map((d) => d.type))].sort();
   const stateOptions = states.map((s) => s[0]);
   const stateAbbreviations = {
-    "New York": "NY",
-    Pennsylvania: "PA",
-    Ohio: "OH",
-    Michigan: "MI",
-    Indiana: "IN",
-    Illinois: "IL",
-    Wisconsin: "WI",
-    Minnesota: "MN",
-    Iowa: "IA",
-    "North Dakota": "ND",
-    "South Dakota": "SD",
-    Nebraska: "NE",
-    Montana: "MT",
-    Wyoming: "WY",
+    Alabama: "AL",
+    Arizona: "AZ",
+    Arkansas: "AR",
+    California: "CA",
+    Colorado: "CO",
+    Connecticut: "CT",
+    Delaware: "DE",
+    Florida: "FL",
+    Georgia: "GA",
     Idaho: "ID",
-    Washington: "WA",
+    Illinois: "IL",
+    Indiana: "IN",
+    Iowa: "IA",
+    Kansas: "KS",
+    Kentucky: "KY",
+    Louisiana: "LA",
+    Maine: "ME",
+    Maryland: "MD",
+    Massachusetts: "MA",
+    Michigan: "MI",
+    Minnesota: "MN",
+    Mississippi: "MS",
+    Missouri: "MO",
+    Montana: "MT",
+    Nebraska: "NE",
+    Nevada: "NV",
+    "New Hampshire": "NH",
+    "New Jersey": "NJ",
+    "New Mexico": "NM",
+    "New York": "NY",
+    "North Carolina": "NC",
+    "North Dakota": "ND",
+    Ohio: "OH",
+    Oklahoma: "OK",
     Oregon: "OR",
+    Pennsylvania: "PA",
+    "Rhode Island": "RI",
+    "South Carolina": "SC",
+    "South Dakota": "SD",
+    Tennessee: "TN",
+    Texas: "TX",
+    Utah: "UT",
+    Vermont: "VT",
+    Virginia: "VA",
+    Washington: "WA",
+    "West Virginia": "WV",
+    Wisconsin: "WI",
+    Wyoming: "WY",
   };
   const mapData = data.map((item) => ({
     state: item.state,
@@ -1152,7 +1398,7 @@ function createMapHtml(data, detailedRouteGeometry = {}) {
   <meta charset="utf-8">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Northern States Road Trip Attractions Map</title>
+  <title>Mainland USA Road Trip Attractions Map</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <style>
     * { box-sizing: border-box; }
@@ -1226,8 +1472,8 @@ function createMapHtml(data, detailedRouteGeometry = {}) {
 <body>
   <div class="shell">
     <aside>
-      <h1>Northern States Road Trip</h1>
-      <p class="sub">Top 30 attraction candidates in each scoped state, starting from Rochester, NY and moving west across the upper two-state band, with Nebraska added, plus selectable scenic roads.</p>
+      <h1>Mainland USA Road Trip</h1>
+      <p class="sub">Attraction candidates across all 48 contiguous U.S. states, with Rochester, NY as the default starting point and selectable scenic roads where available.</p>
       <input id="search" type="search" placeholder="Search attractions, cities, audience, or why...">
       <label class="file-load">Load edited workbook<input id="workbookInput" type="file" accept=".xlsx,.xls"></label>
       <div class="save-actions">
@@ -2587,3 +2833,4 @@ async function main() {
 }
 
 await main();
+process.exitCode = 0;

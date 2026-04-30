@@ -1,6 +1,6 @@
 # TripPlanner
 
-Interactive road-trip planner for northern U.S. states.
+Interactive road-trip planner for all 48 contiguous U.S. states.
 
 ## Live App
 
